@@ -185,15 +185,16 @@ app.get('/', (req, res) => {
   }
   
   res.render('index', { 
-    title: 'CSP Demonstration Project',
+    title: 'CSP SLAP - Content Security Policy Security Lab Attack Platform',
     scenarios: scenarios
   });
 });
 
 app.listen(PORT, () => {
-  console.log(`CSP Demo server running on http://localhost:${PORT}`);
-  console.log('Available demo scenarios:');
-  console.log('- http://localhost:3000/ (Navigation)');
+  console.log(`🥊 CSP SLAP server running on http://localhost:${PORT}`);
+  console.log('Content Security Policy Security Lab Attack Platform');
+  console.log('Available attack scenarios:');
+  console.log('- http://localhost:3000/ (Lab Navigation)');
   console.log('- http://localhost:3000/vulnerable');
   console.log('- http://localhost:3000/basic-csp');
   console.log('- http://localhost:3000/hash-csp');

@@ -1,6 +1,7 @@
-# Content Security Policy (CSP) Demonstration Project
+# CSP SLAP
+## Content Security Policy Security Lab Attack Platform
 
-A comprehensive demonstration of Content Security Policy implementation showing the evolution from vulnerable applications to secure implementations using various CSP techniques.
+An interactive security laboratory demonstrating Content Security Policy implementation, showing the evolution from vulnerable applications to secure implementations using various CSP techniques.
 
 ## Overview
 
