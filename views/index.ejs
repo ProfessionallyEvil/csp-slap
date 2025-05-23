@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <header>
+        <h1><%= title %></h1>
+        <p>Select a demonstration scenario to explore Content Security Policy implementations</p>
+    </header>
+    
+    <main class="scenarios-grid">
+        <% scenarios.forEach(scenario => { %>
+            <div class="scenario-card">
+                <h2><%= scenario.name %></h2>
+                <p><%= scenario.description %></p>
+                <a href="<%= scenario.path %>" class="demo-button">View Demo</a>
+            </div>
+        <% }) %>
+    </main>
+    
+    <section class="demo-info">
+        <h2>About This Demo</h2>
+        <p>This demonstration shows the progressive implementation of Content Security Policy (CSP) 
+           from vulnerable applications to secure implementations using various techniques:</p>
+        <ul>
+            <li><strong>Vulnerable:</strong> No CSP protection - shows how XSS attacks work</li>
+            <li><strong>Basic CSP:</strong> Simple script-src restrictions</li>
+            <li><strong>Hash-based:</strong> SHA-256 hash allowlisting for inline scripts</li>
+            <li><strong>NGINX Nonce:</strong> Legacy-friendly approach using NGINX sub_filter</li>
+            <li><strong>Helmet Nonce:</strong> Application-level nonce generation</li>
+        </ul>
+    </section>
+</body>
+</html>

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <h1>CSP Demo: <%= domain %></h1>
+            <a href="/" class="nav-home">← Back to Scenarios</a>
+        </nav>
+    </header>
+    
+    <main>
+        <div class="demo-content">
+            <div class="csp-status csp-secure">
+                🛡️ HELMET NONCE CSP PROTECTION - Application-level implementation
+            </div>
+            
+            <h2>Helmet Nonce Demo Page</h2>
+            <p>This page demonstrates modern CSP implementation using Helmet middleware with cryptographically secure nonce generation.</p>
+            
+            <div class="code-example">
+// Helmet configuration:
+app.use((req, res, next) => {
+  res.locals.nonce = crypto.randomBytes(16).toString('base64');
+  next();
+});
+
+app.use(helmet.contentSecurityPolicy({
+  directives: {
+    defaultSrc: ["'self'"],
+    scriptSrc: ["'self'", (req, res) => `'nonce-${res.locals.nonce}'`]
+  }
+}));
+            </div>
+            
+            <div class="demo-form">
+                <h3>User Comment Form (Nonce-Protected)</h3>
+                <form id="commentForm">
+                    <input type="text" id="username" placeholder="Your name" required>
+                    <input type="text" id="comment" placeholder="Try XSS: <img src=x onerror=alert('XSS!')>" required>
+                    <button type="submit">Post Comment</button>
+                </form>
+                <div id="comments"></div>
+            </div>
+            
+            <div class="demo-form">
+                <h3>Script Execution Tests</h3>
+                <button onclick="testInlineScript()">Test Inline Script (WILL FAIL)</button>
+                <button id="legitimateBtn">Test Legitimate Nonce Script (WORKS)</button>
+                <button id="externalScriptBtn">Test External Script (WILL FAIL)</button>
+            </div>
+            
+            <div class="timer-display" id="timer">Timer: 60</div>
+            
+            <div class="demo-info">
+                <h3>What you should observe:</h3>
+                <ul>
+                    <li>✅ Scripts with cryptographically secure nonce execute normally</li>
+                    <li>❌ Scripts without nonce are blocked</li>
+                    <li>❌ Injected scripts cannot predict the random nonce</li>
+                    <li>🔒 Each page load generates a new secure nonce</li>
+                    <li>🔍 Check Network tab to see CSP header with nonce</li>
+                </ul>
+                
+                <h4>Application-Level Benefits:</h4>
+                <ul>
+                    <li><strong>Cryptographically Secure:</strong> Uses crypto.randomBytes()</li>
+                    <li><strong>Dynamic:</strong> New nonce per request</li>
+                    <li><strong>Integrated:</strong> Full application control</li>
+                    <li><strong>Scalable:</strong> Works with complex CSP policies</li>
+                </ul>
+                <p><strong>Current nonce:</strong> <%= nonce %></p>
+            </div>
+        </div>
+    </main>
+    
+    <!-- This script uses the cryptographically secure nonce from Helmet -->
+    <script nonce="<%= nonce %>">
+        let timerCount = 60;
+        const timerElement = document.getElementById('timer');
+        
+        function updateTimer() {
+            timerCount--;
+            timerElement.textContent = `Timer: ${timerCount}`;
+            if (timerCount <= 0) {
+                timerCount = 60;
+            }
+        }
+        
+        setInterval(updateTimer, 1000);
+        
+        document.getElementById('commentForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const username = document.getElementById('username').value;
+            const comment = document.getElementById('comment').value;
+            const commentsDiv = document.getElementById('comments');
+            
+            const commentHTML = `<div class="comment-item">
+                <strong>${username}:</strong> ${comment}
+            </div>`;
+            
+            commentsDiv.innerHTML += commentHTML;
+            this.reset();
+        });
+        
+        document.getElementById('legitimateBtn').addEventListener('click', function() {
+            alert('This Helmet nonce-protected script is allowed to execute!');
+        });
+        
+        document.getElementById('externalScriptBtn').addEventListener('click', function() {
+            const script = document.createElement('script');
+            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js';
+            script.onload = () => alert('External script loaded!');
+            script.onerror = () => console.log('External script blocked by CSP');
+            document.head.appendChild(script);
+        });
+    </script>
+</body>
+</html>

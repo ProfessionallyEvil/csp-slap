@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <h1>CSP Demo: <%= domain || 'Navigation' %></h1>
+            <a href="/" class="nav-home">← Back to Scenarios</a>
+        </nav>
+    </header>
+    
+    <main>
+        <%- body %>
+    </main>
+    
+    <footer>
+        <p>Content Security Policy Demonstration Project</p>
+    </footer>
+</body>
+</html>

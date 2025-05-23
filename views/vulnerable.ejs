@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <h1>CSP Demo: <%= domain %></h1>
+            <a href="/" class="nav-home">← Back to Scenarios</a>
+        </nav>
+    </header>
+    
+    <main>
+        <div class="demo-content">
+            <div class="csp-status csp-none">
+                ⚠️ NO CSP PROTECTION - This page is vulnerable to XSS attacks
+            </div>
+            
+            <h2>Vulnerable Demo Page</h2>
+            <p>This page has no Content Security Policy protection. Try the XSS examples below to see how easily malicious scripts can execute.</p>
+            
+            <div class="demo-form">
+                <h3>User Comment Form (Vulnerable to XSS)</h3>
+                <form id="commentForm" onsubmit="return handleComment(event)">
+                    <input type="text" id="username" placeholder="Your name" required>
+                    <input type="text" id="comment" placeholder="Try XSS: <img src=x onerror=alert('XSS!')>" required>
+                    <button type="submit">Post Comment</button>
+                </form>
+                <div id="comments"></div>
+            </div>
+            
+            <div class="demo-form">
+                <h3>Cross-Origin Data Submission Test</h3>
+                <form id="crossOriginForm" onsubmit="return submitToCrossOrigin(event)">
+                    <input type="text" id="sensitiveData" placeholder="Sensitive data" required>
+                    <button type="submit" class="dangerous">Submit to Malicious Domain</button>
+                </form>
+                <div id="crossOriginResult"></div>
+            </div>
+            
+            <div class="demo-form">
+                <h3>Quick XSS Tests</h3>
+                <button onclick="testInlineScript()">Test Inline Script</button>
+                <button onclick="testExternalScript()">Test External Script Load</button>
+                <button onclick="testImageXSS()">Test Image XSS</button>
+            </div>
+            
+            <div class="timer-display" id="timer">Timer: 60</div>
+            
+            <div class="demo-info">
+                <h3>What you should observe:</h3>
+                <ul>
+                    <li>✅ All scripts execute without restriction</li>
+                    <li>✅ Alert boxes appear when XSS payloads are injected</li>
+                    <li>✅ Cross-origin requests succeed</li>
+                    <li>✅ No browser security warnings in console</li>
+                </ul>
+            </div>
+        </div>
+    </main>
+    
+    <script>
+        let timerCount = 60;
+        const timerElement = document.getElementById('timer');
+        
+        function updateTimer() {
+            timerCount--;
+            timerElement.textContent = `Timer: ${timerCount}`;
+            if (timerCount <= 0) {
+                timerCount = 60;
+            }
+        }
+        
+        setInterval(updateTimer, 1000);
+        
+        function handleComment(event) {
+            event.preventDefault();
+            const username = document.getElementById('username').value;
+            const comment = document.getElementById('comment').value;
+            const commentsDiv = document.getElementById('comments');
+            
+            const commentHTML = `<div class="comment-item">
+                <strong>${username}:</strong> ${comment}
+            </div>`;
+            
+            commentsDiv.innerHTML += commentHTML;
+            document.getElementById('commentForm').reset();
+            return false;
+        }
+        
+        function submitToCrossOrigin(event) {
+            event.preventDefault();
+            const data = document.getElementById('sensitiveData').value;
+            
+            fetch('/malicious/steal-data', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ sensitiveData: data })
+            })
+            .then(response => response.json())
+            .then(result => {
+                document.getElementById('crossOriginResult').innerHTML = 
+                    `<div class="result-success">
+                        ⚠️ Data successfully sent to malicious domain: ${result.message}
+                    </div>`;
+            })
+            .catch(error => {
+                document.getElementById('crossOriginResult').innerHTML = 
+                    `<div class="result-error">
+                        ⚠️ Cross-origin request failed: ${error.message}
+                    </div>`;
+            });
+            
+            return false;
+        }
+        
+        function testInlineScript() {
+            alert('Inline script executed successfully! This is an XSS vulnerability.');
+        }
+        
+        function testExternalScript() {
+            const script = document.createElement('script');
+            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js';
+            script.onload = () => alert('External script loaded successfully!');
+            script.onerror = () => alert('External script failed to load');
+            document.head.appendChild(script);
+        }
+        
+        function testImageXSS() {
+            const img = document.createElement('img');
+            img.src = 'nonexistent.jpg';
+            img.onerror = () => alert('Image XSS executed via onerror handler!');
+            document.body.appendChild(img);
+        }
+    </script>
+</body>
+</html>

