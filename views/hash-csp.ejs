@@ -39,8 +39,8 @@ Content-Security-Policy: default-src 'self'; script-src 'self' '<%= scriptHash %
             
             <div class="demo-form">
                 <h3>Script Execution Tests</h3>
-                <button onclick="testInlineScript()">Test Inline Script (WILL FAIL)</button>
-                <button id="legitimateBtn">Test Legitimate Hashed Script (WILL WORK)</button>
+                <button id="inlineScriptBtn">Test Inline Script (WILL FAIL)</button>
+                <button id="legitimateBtn">Test Hashed Script (WILL WORK)</button>
                 <button id="externalScriptBtn">Test External Script (WILL FAIL)</button>
             </div>
             
@@ -66,6 +66,10 @@ Content-Security-Policy: default-src 'self'; script-src 'self' '<%= scriptHash %
                     <li><strong>Result:</strong> Timer works because script has matching hash</li>
                     <li><strong>XSS Protection:</strong> Injected scripts will be blocked (no matching hash)</li>
                 </ul>
+                
+                <div class="code-view-button">
+                    <a href="/hash-csp/code" target="_blank" class="demo-button">📝 View JavaScript Code</a>
+                </div>
             </div>
         </div>
     </main>
@@ -101,6 +105,13 @@ Content-Security-Policy: default-src 'self'; script-src 'self' '<%= scriptHash %
         
         document.getElementById('legitimateBtn').addEventListener('click', function() {
             alert('This hashed script is allowed to execute!');
+        });
+        
+        document.getElementById('inlineScriptBtn').addEventListener('click', function() {
+            // This will fail because we're creating an inline script without a hash
+            const script = document.createElement('script');
+            script.textContent = "alert('This inline script should be blocked by CSP!');";
+            document.head.appendChild(script);
         });
         
         document.getElementById('externalScriptBtn').addEventListener('click', function() {

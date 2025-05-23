@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <style>
+        body { 
+            background: #1a202c; 
+            color: #e2e8f0; 
+            font-family: 'Courier New', monospace;
+        }
+        .code-section { 
+            margin: 2rem 0; 
+            background: #2d3748; 
+            border-radius: 8px; 
+            overflow: hidden;
+        }
+        .code-header { 
+            background: #4a5568; 
+            padding: 1rem; 
+            color: #63b3ed; 
+            font-weight: bold;
+        }
+        .code-content { 
+            padding: 1.5rem; 
+        }
+        pre { 
+            margin: 0; 
+            white-space: pre-wrap; 
+            font-size: 14px; 
+            line-height: 1.5;
+        }
+        .nginx-info {
+            background: #2a4365;
+            color: #bee3f8;
+            padding: 1rem;
+            border-radius: 4px;
+            margin: 1rem 0;
+            border-left: 4px solid #3182ce;
+        }
+    </style>
+</head>
+<body>
+    <header style="background: #2d3748; padding: 2rem; text-align: center;">
+        <h1>NGINX Nonce Demo: Code & Configuration</h1>
+        <p>Legacy-friendly CSP implementation using NGINX sub_filter</p>
+    </header>
+    
+    <main style="max-width: 1000px; margin: 0 auto; padding: 2rem;">
+        
+        <div class="nginx-info">
+            <strong>🔧 NGINX NONCE APPROACH</strong><br>
+            <strong>Use Case:</strong> Legacy applications that can't easily be modified for server-side templating<br>
+            <strong>Benefits:</strong> Add CSP protection without application code changes<br>
+            <strong>Trade-offs:</strong> Less secure nonce generation but still effective protection
+        </div>
+
+        <div class="code-section">
+            <div class="code-header">Production NGINX Configuration</div>
+            <div class="code-content">
+                <pre><code>server {
+    server_name   your-domain.com;
+    listen        443 ssl http2;
+    
+    # Initialize nonce variable
+    set $csp_nonce "";
+    
+    location / {
+        root /app;
+        try_files $uri $uri/ /index.html =404;
+        
+        # Generate nonce using request ID (simple but effective)
+        set $csp_nonce $request_id;
+        
+        # Replace nonce placeholder in HTML files
+        sub_filter_once off;
+        sub_filter '__CSP_NONCE__' $csp_nonce;
+        
+        # Security Headers
+        add_header X-Frame-Options "SAMEORIGIN" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header X-XSS-Protection "1; mode=block" always;
+        add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+        
+        # Cache Control
+        add_header Cache-Control "no-store, no-cache, must-revalidate" always;
+        add_header Pragma "no-cache" always;
+        
+        # Content Security Policy with nonce
+        add_header Content-Security-Policy 
+            "script-src 'nonce-$csp_nonce' 'strict-dynamic' https: 'unsafe-inline' 'unsafe-eval'; 
+             object-src 'none'; 
+             base-uri 'self';" always;
+        
+        # Disable caching for dynamic content
+        if_modified_since off;
+        expires off;
+        etag off;
+    }
+}</code></pre>
+                <p style="color: #48bb78; margin-top: 1rem;">✅ This configuration provides immediate CSP protection for legacy applications</p>
+            </div>
+        </div>
+
+        <div class="code-section">
+            <div class="code-header">HTML Template with Nonce Placeholder</div>
+            <div class="code-content">
+                <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+    &lt;title&gt;Legacy Application&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1&gt;My Legacy App&lt;/h1&gt;
+    
+    &lt;!-- NGINX will replace __CSP_NONCE__ with actual nonce --&gt;
+    &lt;script nonce="__CSP_NONCE__"&gt;
+        // Your existing inline JavaScript
+        console.log('This script will work with CSP!');
+        
+        // Timer functionality
+        let timerCount = 60;
+        function updateTimer() {
+            timerCount--;
+            document.getElementById('timer').textContent = 'Timer: ' + timerCount;
+            if (timerCount &lt;= 0) timerCount = 60;
+        }
+        setInterval(updateTimer, 1000);
+    &lt;/script&gt;
+    
+    &lt;div id="timer"&gt;Timer: 60&lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+                <p style="color: #ed8936; margin-top: 1rem;">🔧 NGINX sub_filter replaces __CSP_NONCE__ with generated nonce value</p>
+            </div>
+        </div>
+
+        <div class="code-section">
+            <div class="code-header">Simplified Demo Configuration</div>
+            <div class="code-content">
+                <pre><code>// Express.js simulation of NGINX nonce generation
+app.get('/nonce-nginx', (req, res) => {
+    // Simulate NGINX $request_id + timestamp
+    const simpleNonce = Date.now().toString() + Math.random().toString(36).substring(2);
+    
+    // Set CSP header with nonce
+    res.setHeader('Content-Security-Policy', 
+        `default-src 'self'; script-src 'self' 'nonce-${simpleNonce}'; style-src 'self'; img-src *; object-src 'none';`);
+    
+    // Render template with nonce
+    res.render('nonce-nginx', { 
+        title: 'NGINX Nonce Demo - Legacy-Friendly Implementation',
+        domain: 'nonce-nginx.example.com',
+        nonce: simpleNonce  // This simulates NGINX sub_filter replacement
+    });
+});</code></pre>
+                <p style="color: #ed8936; margin-top: 1rem;">⚠️ Demo uses simplified nonce generation - production should use crypto.randomBytes()</p>
+            </div>
+        </div>
+
+        <div class="code-section">
+            <div class="code-header">Benefits & Trade-offs</div>
+            <div class="code-content">
+                <pre><code>// Benefits of NGINX Nonce Approach:
+✅ No application code changes required
+✅ Can be deployed by infrastructure team
+✅ Works with any technology stack
+✅ Provides immediate CSP protection
+✅ Significant security improvement over no CSP
+
+// Trade-offs:
+⚠️ Less cryptographically secure nonce generation
+⚠️ Requires NGINX sub_filter module
+⚠️ Limited to static file serving patterns
+⚠️ No programmatic CSP policy management
+
+// When to Use:
+- Legacy applications that can't be easily modified
+- Quick wins for existing infrastructure
+- Stepping stone to full CSP implementation
+- Organizations with infrastructure-first security approach
+
+// When NOT to Use:
+- New applications (use application-level CSP instead)
+- Complex dynamic content requirements
+- When you need fine-grained CSP control
+- Applications with existing template systems</code></pre>
+                <p style="color: #48bb78; margin-top: 1rem;">📚 Perfect for "good enough" security improvements in legacy environments</p>
+            </div>
+        </div>
+
+    </main>
+</body>
+</html>

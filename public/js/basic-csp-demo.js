@@ -28,30 +28,12 @@ document.getElementById('commentForm').addEventListener('submit', function(event
     this.reset();
 });
 
-document.getElementById('crossOriginForm').addEventListener('submit', function(event) {
-    event.preventDefault();
-    const data = document.getElementById('sensitiveData').value;
-    
-    fetch('/malicious/steal-data', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ sensitiveData: data })
-    })
-    .then(response => response.json())
-    .then(result => {
-        document.getElementById('crossOriginResult').innerHTML = 
-            `<div class="result-success">
-                ⚠️ Data successfully sent to malicious domain: ${result.message}
-            </div>`;
-    })
-    .catch(error => {
-        document.getElementById('crossOriginResult').innerHTML = 
-            `<div class="result-error">
-                ❌ Cross-origin request failed: ${error.message}
-            </div>`;
-    });
+
+// Test inline script creation - will be blocked by CSP
+document.getElementById('inlineScriptBtn').addEventListener('click', function() {
+    const script = document.createElement('script');
+    script.textContent = "alert('This inline script should be blocked by CSP!');";
+    document.head.appendChild(script);
 });
 
 // These functions will demonstrate CSP blocking

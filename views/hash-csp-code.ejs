@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <style>
+        body { 
+            background: #1a202c; 
+            color: #e2e8f0; 
+            font-family: 'Courier New', monospace;
+        }
+        .code-section { 
+            margin: 2rem 0; 
+            background: #2d3748; 
+            border-radius: 8px; 
+            overflow: hidden;
+        }
+        .code-header { 
+            background: #4a5568; 
+            padding: 1rem; 
+            color: #63b3ed; 
+            font-weight: bold;
+        }
+        .code-content { 
+            padding: 1.5rem; 
+        }
+        pre { 
+            margin: 0; 
+            white-space: pre-wrap; 
+            font-size: 14px; 
+            line-height: 1.5;
+        }
+        .hash-info {
+            background: #553c9a;
+            color: #e9d8fd;
+            padding: 1rem;
+            border-radius: 4px;
+            margin: 1rem 0;
+        }
+    </style>
+</head>
+<body>
+    <header style="background: #2d3748; padding: 2rem; text-align: center;">
+        <h1>Hash-based CSP: JavaScript Code</h1>
+        <p>This page shows the exact JavaScript code used in the hash-CSP demo</p>
+    </header>
+    
+    <main style="max-width: 1000px; margin: 0 auto; padding: 2rem;">
+        
+        <div class="hash-info">
+            <strong>Current Script Hash:</strong> <%= scriptHash %><br>
+            <strong>CSP Policy:</strong> script-src 'self' '<%= scriptHash %>'<br>
+            <strong>Note:</strong> The entire script block below is hashed as one unit
+        </div>
+
+        <div class="code-section">
+            <div class="code-header">Timer Functionality</div>
+            <div class="code-content">
+                <pre><code>let timerCount = 60;
+const timerElement = document.getElementById('timer');
+
+function updateTimer() {
+    timerCount--;
+    timerElement.textContent = `Timer: ${timerCount}`;
+    if (timerCount <= 0) {
+        timerCount = 60;
+    }
+}
+
+setInterval(updateTimer, 1000);</code></pre>
+            </div>
+        </div>
+
+        <div class="code-section">
+            <div class="code-header">Comment Form Handler</div>
+            <div class="code-content">
+                <pre><code>document.getElementById('commentForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+    const username = document.getElementById('username').value;
+    const comment = document.getElementById('comment').value;
+    const commentsDiv = document.getElementById('comments');
+    
+    const commentHTML = `&lt;div class="comment-item"&gt;
+        &lt;strong&gt;${username}:&lt;/strong&gt; ${comment}
+    &lt;/div&gt;`;
+    
+    commentsDiv.innerHTML += commentHTML;
+    this.reset();
+});</code></pre>
+            </div>
+        </div>
+
+        <div class="code-section">
+            <div class="code-header">Test Button: Legitimate Hashed Script (✅ WORKS)</div>
+            <div class="code-content">
+                <pre><code>document.getElementById('legitimateBtn').addEventListener('click', function() {
+    alert('This hashed script is allowed to execute!');
+});</code></pre>
+                <p style="color: #48bb78; margin-top: 1rem;">✅ This executes because it's part of the hashed script block</p>
+            </div>
+        </div>
+
+        <div class="code-section">
+            <div class="code-header">Test Button: Inline Script Creation (❌ BLOCKED)</div>
+            <div class="code-content">
+                <pre><code>document.getElementById('inlineScriptBtn').addEventListener('click', function() {
+    // This will fail because we're creating an inline script without a hash
+    const script = document.createElement('script');
+    script.textContent = "alert('This inline script should be blocked by CSP!');";
+    document.head.appendChild(script);
+});</code></pre>
+                <p style="color: #f56565; margin-top: 1rem;">❌ The created script element has no hash and will be blocked</p>
+            </div>
+        </div>
+
+        <div class="code-section">
+            <div class="code-header">Test Button: External Script Loading (❌ BLOCKED)</div>
+            <div class="code-content">
+                <pre><code>document.getElementById('externalScriptBtn').addEventListener('click', function() {
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js';
+    script.onload = () => alert('External script loaded!');
+    script.onerror = () => console.log('External script blocked by CSP');
+    document.head.appendChild(script);
+});</code></pre>
+                <p style="color: #f56565; margin-top: 1rem;">❌ External scripts not from 'self' are blocked</p>
+            </div>
+        </div>
+
+        <div class="code-section">
+            <div class="code-header">Hash Calculation Process</div>
+            <div class="code-content">
+                <pre><code>// To calculate the hash for this script:
+// 1. Copy the ENTIRE script content (all functions above combined)
+// 2. Include exact whitespace, newlines, and indentation
+// 3. Calculate SHA-256:
+
+const crypto = require('crypto');
+const scriptContent = `        let timerCount = 60;
+        const timerElement = document.getElementById('timer');
+        
+        function updateTimer() {
+            // ... entire script content here ...
+        });`;
+
+const hash = crypto.createHash('sha256').update(scriptContent).digest('base64');
+console.log('sha256-' + hash); // <%= scriptHash %></code></pre>
+                <p style="color: #ed8936; margin-top: 1rem;">⚠️ Hash must be recalculated if ANY character in the script changes</p>
+            </div>
+        </div>
+
+    </main>
+</body>
+</html>

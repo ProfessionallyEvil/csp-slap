@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <style>
+        body { 
+            background: #1a202c; 
+            color: #e2e8f0; 
+            font-family: 'Courier New', monospace;
+        }
+        .code-section { 
+            margin: 2rem 0; 
+            background: #2d3748; 
+            border-radius: 8px; 
+            overflow: hidden;
+        }
+        .code-header { 
+            background: #4a5568; 
+            padding: 1rem; 
+            color: #63b3ed; 
+            font-weight: bold;
+        }
+        .code-content { 
+            padding: 1.5rem; 
+        }
+        pre { 
+            margin: 0; 
+            white-space: pre-wrap; 
+            font-size: 14px; 
+            line-height: 1.5;
+        }
+        .helmet-info {
+            background: #22543d;
+            color: #c6f6d5;
+            padding: 1rem;
+            border-radius: 4px;
+            margin: 1rem 0;
+            border-left: 4px solid #48bb78;
+        }
+    </style>
+</head>
+<body>
+    <header style="background: #2d3748; padding: 2rem; text-align: center;">
+        <h1>Helmet Nonce Demo: JavaScript Code</h1>
+        <p>Application-level CSP implementation with cryptographically secure nonces</p>
+    </header>
+    
+    <main style="max-width: 1000px; margin: 0 auto; padding: 2rem;">
+        
+        <div class="helmet-info">
+            <strong>🛡️ HELMET NONCE APPROACH</strong><br>
+            <strong>Benefits:</strong> Cryptographically secure, application-controlled, fully integrated<br>
+            <strong>Best For:</strong> Modern applications with server-side rendering capabilities
+        </div>
+
+        <div class="code-section">
+            <div class="code-header">Helmet CSP Configuration</div>
+            <div class="code-content">
+                <pre><code>import helmet from 'helmet';
+import crypto from 'crypto';
+
+// Generate cryptographically secure nonce per request
+app.get('/nonce-helmet', (req, res, next) => {
+    const nonce = crypto.randomBytes(16).toString('base64');
+    res.locals.nonce = nonce;
+    
+    // Configure Helmet CSP with nonce
+    helmet.contentSecurityPolicy({
+        directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: ["'self'", `'nonce-${nonce}'`],
+            styleSrc: ["'self'"],
+            imgSrc: ["*"],
+            objectSrc: ["'none'"],
+            upgradeInsecureRequests: null  // Disable for demo
+        }
+    })(req, res, () => {
+        res.render('nonce-helmet', { 
+            title: 'Helmet Nonce Demo - Application-Level CSP Management',
+            domain: 'nonce-helmet.example.com',
+            nonce: nonce
+        });
+    });
+});</code></pre>
+                <p style="color: #48bb78; margin-top: 1rem;">✅ Cryptographically secure nonce generation using crypto.randomBytes()</p>
+            </div>
+        </div>
+
+        <div class="code-section">
+            <div class="code-header">EJS Template with Nonce</div>
+            <div class="code-content">
+                <pre><code>&lt;!-- The nonce is securely generated and passed to template --&gt;
+&lt;script nonce="&lt;%= nonce %&gt;"&gt;
+    let timerCount = 60;
+    const timerElement = document.getElementById('timer');
+    
+    function updateTimer() {
+        timerCount--;
+        timerElement.textContent = `Timer: ${timerCount}`;
+        if (timerCount &lt;= 0) {
+            timerCount = 60;
+        }
+    }
+    
+    setInterval(updateTimer, 1000);
+    
+    // Event listeners for form handling
+    document.getElementById('commentForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+        const username = document.getElementById('username').value;
+        const comment = document.getElementById('comment').value;
+        const commentsDiv = document.getElementById('comments');
+        
+        const commentHTML = `&lt;div class="comment-item"&gt;
+            &lt;strong&gt;${username}:&lt;/strong&gt; ${comment}
+        &lt;/div&gt;`;
+        
+        commentsDiv.innerHTML += commentHTML;
+        this.reset();
+    });
+    
+    // Test buttons
+    document.getElementById('legitimateBtn').addEventListener('click', function() {
+        alert('This Helmet nonce-protected script is allowed to execute!');
+    });
+&lt;/script&gt;</code></pre>
+                <p style="color: #48bb78; margin-top: 1rem;">✅ Script executes because it has the matching nonce value</p>
+            </div>
+        </div>
+
+        <div class="code-section">
+            <div class="code-header">Advanced Helmet Configuration</div>
+            <div class="code-content">
+                <pre><code>// Production-ready Helmet configuration
+app.use((req, res, next) => {
+    // Generate unique nonce per request
+    res.locals.nonce = crypto.randomBytes(32).toString('base64');
+    next();
+});
+
+app.use(helmet({
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: [
+                "'self'",
+                (req, res) => `'nonce-${res.locals.nonce}'`,
+                "'strict-dynamic'"  // For modern browsers
+            ],
+            styleSrc: ["'self'", "'unsafe-inline'"],  // Often needed for CSS
+            imgSrc: ["'self'", "data:", "https:"],
+            connectSrc: ["'self'"],
+            fontSrc: ["'self'", "https:"],
+            objectSrc: ["'none'"],
+            mediaSrc: ["'self'"],
+            frameSrc: ["'none'"],
+            baseUri: ["'self'"],
+            formAction: ["'self'"],
+            upgradeInsecureRequests: []  // Enable in production
+        },
+        reportUri: '/csp-report'  // For monitoring violations
+    },
+    crossOriginEmbedderPolicy: false  // Disable if causing issues
+}));</code></pre>
+                <p style="color: #48bb78; margin-top: 1rem;">📚 Comprehensive CSP configuration for production applications</p>
+            </div>
+        </div>
+
+        <div class="code-section">
+            <div class="code-header">Nonce Security Benefits</div>
+            <div class="code-content">
+                <pre><code>// Why Helmet Nonces are More Secure:
+
+✅ Cryptographically Secure Generation:
+   - Uses crypto.randomBytes() instead of timestamps
+   - 128+ bits of entropy
+   - Unpredictable by attackers
+
+✅ Per-Request Generation:
+   - New nonce for every page load
+   - No reuse across requests
+   - Short lifetime reduces attack window
+
+✅ Application Integration:
+   - Full control over CSP policy
+   - Can adapt to different page requirements
+   - Easy to add reporting and monitoring
+
+✅ Framework Integration:
+   - Works with any templating engine
+   - Middleware pattern for easy adoption
+   - TypeScript support
+
+// Comparison with NGINX Approach:
+NGINX:     Simple timestamp/request ID
+Helmet:    crypto.randomBytes(16).toString('base64')
+
+NGINX:     Infrastructure-level deployment
+Helmet:    Application-level control
+
+NGINX:     Good for legacy compatibility
+Helmet:    Best for modern security requirements</code></pre>
+                <p style="color: #48bb78; margin-top: 1rem;">🔒 Helmet provides the strongest CSP protection with proper nonce security</p>
+            </div>
+        </div>
+
+    </main>
+</body>
+</html>
