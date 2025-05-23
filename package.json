@@ -1,7 +1,7 @@
 {
-  "name": "csp-demos",
+  "name": "csp-slap",
   "version": "1.0.0",
-  "description": "",
+  "description": "Content Security Policy Security Lab Attack Platform - Interactive CSP demonstration and testing environment",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
