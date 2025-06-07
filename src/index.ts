@@ -218,7 +218,8 @@ location /nonce-nginx {
     res.render('nonce-nginx', { 
       title: 'NGINX Nonce Demo - Legacy-Friendly Implementation',
       domain: 'nonce-nginx.example.com',
-      nonce: simpleNonce
+      nonce: simpleNonce,
+      navUrl: getNavigationUrl(req)
     });
   }
 });
