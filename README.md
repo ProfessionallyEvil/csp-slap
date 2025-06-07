@@ -58,7 +58,7 @@ Access the demo at **http://localhost/** or **http://demo.example.com/** (after 
 
 **For Windows NGINX Integration:**
 
-1. **Locate your main NGINX configuration file** (typically `C:\Users\JasonGillam\nginx\nginx-1.26.1\conf\nginx.conf`)
+1. **Locate your main NGINX configuration file** (typically `C:\nginx\conf\nginx.conf` or `C:\Users\{YourUsername}\nginx\nginx-1.26.1\conf\nginx.conf`)
 
 2. **Add the include directive** within your existing `http {}` block:
 
@@ -66,8 +66,8 @@ Access the demo at **http://localhost/** or **http://demo.example.com/** (after 
 http {
     # ... your existing configuration ...
     
-    # Include CSP demo configuration
-    include "C:/Users/JasonGillam/WebstormProjects/csp-demos/nginx.conf";
+    # Include CSP demo configuration  
+    include "C:/path/to/your/csp-demos/csp-nginx.conf";
     
     # ... rest of your existing configuration ...
 }
@@ -228,7 +228,7 @@ The CSP demo now includes **real NGINX nonce implementation** alongside the exis
 
 ### Files Included
 
-- `nginx.conf` - Configuration for integration with existing NGINX setups
+- `csp-nginx.conf` - Configuration for integration with existing NGINX setups
 - `nginx-container.conf` - Self-contained configuration for Docker deployment
 - `Dockerfile` - Complete containerized demo environment
 
@@ -236,15 +236,15 @@ The CSP demo now includes **real NGINX nonce implementation** alongside the exis
 
 #### Option 1: Include in Existing NGINX (Windows)
 
-Edit your main NGINX configuration file (`C:\Users\JasonGillam\nginx\nginx-1.26.1\conf\nginx.conf`):
+Edit your main NGINX configuration file:
 
 ```nginx
 # Add to your main nginx.conf
 http {
     # ... your existing config ...
     
-    # Include CSP demo configuration
-    include "C:/Users/JasonGillam/WebstormProjects/csp-demos/nginx.conf";
+    # Include CSP demo configuration  
+    include "C:/path/to/your/csp-demos/csp-nginx.conf";
     
     # ... rest of your config ...
 }
@@ -258,7 +258,7 @@ http {
     # ... your existing config ...
     
     # Include CSP demo configuration
-    include /path/to/csp-demos/nginx.conf;
+    include /path/to/your/csp-demos/csp-nginx.conf;
 }
 ```
 
@@ -266,7 +266,7 @@ http {
 
 ```bash
 # Copy configuration to sites-available
-sudo cp nginx.conf /etc/nginx/sites-available/csp-demo
+sudo cp csp-nginx.conf /etc/nginx/sites-available/csp-demo
 
 # Enable the site
 sudo ln -s /etc/nginx/sites-available/csp-demo /etc/nginx/sites-enabled/
