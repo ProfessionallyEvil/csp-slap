@@ -12,18 +12,16 @@ app.use(express.static(path.join(__dirname, '../public')));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-// Helper function to determine navigation URL
+// Helper function to determine navigation URL (always assumes NGINX setup)
 function getNavigationUrl(req: any): string {
-  const host = req.get('host') || 'localhost';
   const protocol = req.protocol;
-  
-  // If we're on an example.com domain (via NGINX), go to demo.example.com
-  if (host.includes('.example.com')) {
-    return `${protocol}://demo.example.com/`;
-  }
-  
-  // Otherwise use relative URL for localhost/development
-  return '/';
+  return `${protocol}://demo.example.com/`;
+}
+
+// Helper function to determine malicious domain URL (always assumes NGINX setup)
+function getMaliciousUrl(req: any): string {
+  const protocol = req.protocol;
+  return `${protocol}://malicious.example.com/`;
 }
 
 // Route for vulnerable version (no CSP)
@@ -31,7 +29,8 @@ app.get('/vulnerable', (req, res) => {
   res.render('vulnerable', { 
     title: 'Vulnerable Demo - No CSP Protection',
     domain: 'vulnerable.example.com',
-    navUrl: getNavigationUrl(req)
+    navUrl: getNavigationUrl(req),
+    maliciousUrl: getMaliciousUrl(req)
   });
 });
 
@@ -48,14 +47,16 @@ app.get('/basic-csp', (req, res) => {
   res.render('basic-csp', { 
     title: 'Basic CSP Demo - Script Source Restrictions',
     domain: 'basic-csp.example.com',
-    navUrl: getNavigationUrl(req)
+    navUrl: getNavigationUrl(req),
+    maliciousUrl: getMaliciousUrl(req)
   });
 });
 
 // Route for basic-csp code view
 app.get('/basic-csp/code', (req, res) => {
   res.render('basic-csp-code', { 
-    title: 'Basic CSP Demo - JavaScript Code'
+    title: 'Basic CSP Demo - JavaScript Code',
+    maliciousUrl: getMaliciousUrl(req)
   });
 });
 
@@ -82,13 +83,9 @@ app.get('/hash-csp/code', (req, res) => {
 
 // Route for NGINX nonce - serves static HTML with placeholder for NGINX sub_filter
 app.get('/nonce-nginx', (req, res) => {
-  // Check if we have a nonce from NGINX proxy
-  const nginxNonce = req.get('X-CSP-Nonce');
-  
-  if (nginxNonce) {
-    // Running behind NGINX - serve static HTML with placeholder
-    res.setHeader('Content-Type', 'text/html');
-    res.send(`<!DOCTYPE html>
+  // Always serve static HTML with placeholder (assumes NGINX proxy)
+  res.setHeader('Content-Type', 'text/html');
+  res.send(`<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -117,7 +114,7 @@ app.get('/nonce-nginx', (req, res) => {
 # NGINX Configuration:
 location /nonce-nginx {
     set $csp_nonce "\${request_id}_\${msec}";
-    sub_filter '__CSP_NONCE__' $csp_nonce;
+    sub_filter '__CSP_NONCE_XYZ__' $csp_nonce;
     sub_filter_once off;
     add_header Content-Security-Policy "script-src 'self' 'nonce-$csp_nonce'";
     proxy_pass http://backend;
@@ -154,6 +151,7 @@ location /nonce-nginx {
                 
                 <h4>Legacy-Friendly Approach:</h4>
                 <p>This method allows adding CSP protection to existing applications without modifying application code. NGINX handles nonce generation and injection.</p>
+                <p><strong>Security Enhancement:</strong> The placeholder __CSP_NONCE_XYZ__ in the config above shows how you can randomize the placeholder token at build/deployment time for additional security.</p>
                 <p><strong>Current nonce (injected by NGINX):</strong> __CSP_NONCE__</p>
                 
                 <div class="code-view-button">
@@ -211,17 +209,6 @@ location /nonce-nginx {
     </script>
 </body>
 </html>`);
-  } else {
-    // Running standalone - fallback to EJS template for development
-    const simpleNonce = Date.now().toString() + Math.random().toString(36).substring(2);
-    res.setHeader('Content-Security-Policy', `default-src 'self'; script-src 'self' 'nonce-${simpleNonce}'; style-src 'self'; img-src *; object-src 'none';`);
-    res.render('nonce-nginx', { 
-      title: 'NGINX Nonce Demo - Legacy-Friendly Implementation',
-      domain: 'nonce-nginx.example.com',
-      nonce: simpleNonce,
-      navUrl: getNavigationUrl(req)
-    });
-  }
 });
 
 // Route for nginx-nonce code view
@@ -306,34 +293,17 @@ app.get('/malicious/stolen-data', (req, res) => {
 
 // Main navigation page
 app.get('/', (req, res) => {
-  const host = req.get('host') || 'localhost';
   const protocol = req.protocol;
   
-  // Determine if we're using custom domains or localhost
-  const isCustomDomain = host.includes('.example.com');
-  
-  let scenarios;
-  if (isCustomDomain) {
-    // Use absolute URLs with custom domains (no port needed for port 80)
-    scenarios = [
-      { name: 'Vulnerable (No CSP)', path: `${protocol}://vulnerable.example.com/`, description: 'Shows XSS vulnerabilities without protection' },
-      { name: 'Basic CSP', path: `${protocol}://basic-csp.example.com/`, description: 'Basic Content Security Policy implementation' },
-      { name: 'Hash-based CSP', path: `${protocol}://hash-csp.example.com/`, description: 'SHA-256 hash allowlisting for inline scripts' },
-      { name: 'NGINX Nonce', path: `${protocol}://nonce-nginx.example.com/`, description: 'Legacy-friendly nonce via NGINX sub_filter' },
-      { name: 'Helmet Nonce', path: `${protocol}://nonce-helmet.example.com/`, description: 'Application-level nonce with Helmet middleware' },
-      { name: 'Malicious Domain', path: `${protocol}://malicious.example.com/`, description: 'Simulated attacker-controlled domain' }
-    ];
-  } else {
-    // Use relative URLs for localhost
-    scenarios = [
-      { name: 'Vulnerable (No CSP)', path: '/vulnerable', description: 'Shows XSS vulnerabilities without protection' },
-      { name: 'Basic CSP', path: '/basic-csp', description: 'Basic Content Security Policy implementation' },
-      { name: 'Hash-based CSP', path: '/hash-csp', description: 'SHA-256 hash allowlisting for inline scripts' },
-      { name: 'NGINX Nonce', path: '/nonce-nginx', description: 'Legacy-friendly nonce via NGINX sub_filter' },
-      { name: 'Helmet Nonce', path: '/nonce-helmet', description: 'Application-level nonce with Helmet middleware' },
-      { name: 'Malicious Domain', path: '/malicious', description: 'Simulated attacker-controlled domain' }
-    ];
-  }
+  // Always use absolute URLs with custom domains (assumes NGINX setup)
+  const scenarios = [
+    { name: 'Vulnerable (No CSP)', path: `${protocol}://vulnerable.example.com/`, description: 'Shows XSS vulnerabilities without protection' },
+    { name: 'Basic CSP', path: `${protocol}://basic-csp.example.com/`, description: 'Basic Content Security Policy implementation' },
+    { name: 'Hash-based CSP', path: `${protocol}://hash-csp.example.com/`, description: 'SHA-256 hash allowlisting for inline scripts' },
+    { name: 'NGINX Nonce', path: `${protocol}://nonce-nginx.example.com/`, description: 'Legacy-friendly nonce via NGINX sub_filter' },
+    { name: 'Helmet Nonce', path: `${protocol}://nonce-helmet.example.com/`, description: 'Application-level nonce with Helmet middleware' },
+    { name: 'Malicious Domain', path: `${protocol}://malicious.example.com/`, description: 'Simulated attacker-controlled domain' }
+  ];
   
   res.render('index', { 
     title: 'CSP SLAP - Content Security Policy Security Lab Attack Platform',
@@ -345,17 +315,19 @@ app.listen(PORT, () => {
   console.log(`🥊 CSP SLAP backend server running on http://localhost:${PORT}`);
   console.log('Content Security Policy Security Lab Attack Platform');
   console.log('');
-  console.log('🔧 NGINX Configuration:');
-  console.log('- Configure your NGINX to proxy to this backend server');
-  console.log('- Frontend should be accessible via http://localhost:3000');
-  console.log('- See nginx.conf for complete configuration');
+  console.log('🔧 NGINX Integration Required:');
+  console.log('- This backend requires NGINX proxy configuration');
+  console.log('- See csp-nginx.conf for local NGINX integration');
+  console.log('- Or use: docker run -p 80:80 csp-demo');
   console.log('');
-  console.log('💻 Development mode (direct access):');
-  console.log('- http://localhost:3001/ (Lab Navigation)');
-  console.log('- http://localhost:3001/vulnerable');
-  console.log('- http://localhost:3001/basic-csp');
-  console.log('- http://localhost:3001/hash-csp');
-  console.log('- http://localhost:3001/nonce-nginx (fallback mode)');
-  console.log('- http://localhost:3001/nonce-helmet');
-  console.log('- http://localhost:3001/malicious');
+  console.log('🎯 Access the demo at:');
+  console.log('- http://demo.example.com/ (Main Navigation)');
+  console.log('- http://vulnerable.example.com/');
+  console.log('- http://basic-csp.example.com/');
+  console.log('- http://hash-csp.example.com/');
+  console.log('- http://nonce-nginx.example.com/ (Real NGINX nonce)');
+  console.log('- http://nonce-helmet.example.com/');
+  console.log('- http://malicious.example.com/');
+  console.log('');
+  console.log('⚠️  Requires hosts file entries - see README.md');
 });

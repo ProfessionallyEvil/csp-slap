@@ -5,7 +5,7 @@ An interactive security laboratory demonstrating Content Security Policy impleme
 
 ## Overview
 
-This project demonstrates 5 different CSP scenarios:
+This project demonstrates 6 different CSP scenarios:
 
 1. **Vulnerable (No CSP)** - Shows how XSS attacks work without protection
 2. **Basic CSP** - Basic Content Security Policy implementation  
@@ -91,17 +91,17 @@ http {
 
 ```bash
 # Add to your main nginx.conf within the http {} block
-include /path/to/csp-demos/nginx.conf;
+include /path/to/your/csp-demos/csp-nginx.conf;
 
 # Or include as a separate config file
-sudo cp nginx.conf /etc/nginx/sites-available/csp-demo
+sudo cp csp-nginx.conf /etc/nginx/sites-available/csp-demo
 sudo ln -s /etc/nginx/sites-available/csp-demo /etc/nginx/sites-enabled/
 sudo nginx -t && sudo systemctl reload nginx
 ```
 
-### Option B: Direct Access (Development Only)
+### Option B: Standalone Backend (Not Recommended)
 
-For development or quick testing without NGINX setup:
+The backend can run standalone for development purposes, but requires NGINX for full functionality:
 
 ```bash
 npm install
@@ -109,9 +109,7 @@ npm run build
 npm start
 ```
 
-The server will start on **http://localhost:3001** (note the different port)
-
-**⚠️ Note:** The NGINX nonce demo will fall back to EJS templating in this mode and won't demonstrate the real NGINX sub_filter functionality.
+**⚠️ Important:** This mode is not recommended as the demo is designed for NGINX integration. Navigation and cross-origin forms will not work correctly without NGINX proxy.
 
 ### 4. Configure Local Domains (Optional but Recommended)
 
@@ -164,22 +162,19 @@ Using custom domains (after hosts file setup - **Recommended**):
 - **Helmet Nonce:** http://nonce-helmet.example.com/
 - **Malicious Domain:** http://malicious.example.com/
 
-### Direct Access (Development Only - Port 3001):
-- **Navigation:** http://localhost:3001/
-- **Vulnerable:** http://localhost:3001/vulnerable
-- **Basic CSP:** http://localhost:3001/basic-csp  
-- **Hash CSP:** http://localhost:3001/hash-csp
-- **NGINX Nonce:** http://localhost:3001/nonce-nginx ⚠️ (Fallback EJS mode)
-- **Helmet Nonce:** http://localhost:3001/nonce-helmet
-- **Malicious Domain:** http://localhost:3001/malicious
+### Standalone Backend (Not Recommended - Port 3001):
+- **Navigation:** http://localhost:3001/ ⚠️ (Navigation links will not work)
+- **Individual Routes:** Available but navigation/forms will be broken
 
 ## Code View Pages
 
 Each main demo scenario includes a "📝 View JavaScript Code" button that opens detailed code explanations in a new tab:
 
-- **Vulnerable Code:** http://localhost:3000/vulnerable/code
-- **Basic CSP Code:** http://localhost:3000/basic-csp/code  
-- **Hash CSP Code:** http://localhost:3000/hash-csp/code
+- **Vulnerable Code:** http://vulnerable.example.com/code
+- **Basic CSP Code:** http://basic-csp.example.com/code  
+- **Hash CSP Code:** http://hash-csp.example.com/code
+- **NGINX Nonce Code:** http://nonce-nginx.example.com/code
+- **Helmet Nonce Code:** http://nonce-helmet.example.com/code
 
 ## Demo Instructions
 
@@ -221,7 +216,7 @@ The CSP demo now includes **real NGINX nonce implementation** alongside the exis
 ### Key Features of NGINX Configuration
 
 1. **Real Nonce Generation:** Uses `$request_id` and `$msec` for unique nonces
-2. **Sub_filter Replacement:** Replaces `__CSP_NONCE__` placeholders with actual nonces
+2. **Sub_filter Replacement:** Replaces `__CSP_NONCE__` placeholders with actual nonces (placeholder can be randomized for additional security)
 3. **Domain-specific CSP:** Different policies for each virtual domain
 4. **Rate Limiting:** Protects against abuse
 5. **Security Headers:** Comprehensive security header management
@@ -275,7 +270,7 @@ sudo ln -s /etc/nginx/sites-available/csp-demo /etc/nginx/sites-enabled/
 sudo nginx -t && sudo systemctl reload nginx
 ```
 
-#### Option 3: Docker Deployment
+#### Option 4: Docker Deployment
 
 ```bash
 # Complete self-contained deployment
