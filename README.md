@@ -3,6 +3,10 @@
 
 An interactive security laboratory demonstrating Content Security Policy implementation, showing the evolution from vulnerable applications to secure implementations using various CSP techniques.
 
+**Developed by [Professionally Evil](https://professionallyevil.com)** - A cybersecurity consulting firm specializing in penetration testing, security assessments, and security training.
+
+🔗 **Repository:** https://github.com/ProfessionallyEvil/csp-slap
+
 ## Overview
 
 This project demonstrates 6 different CSP scenarios:
@@ -12,7 +16,7 @@ This project demonstrates 6 different CSP scenarios:
 3. **Hash-based CSP** - SHA-256 hash allowlisting for inline scripts
 4. **NGINX Nonce** - Legacy-friendly approach using real NGINX sub_filter implementation ✨
 5. **Helmet Nonce** - Application-level nonce generation with Helmet middleware
-6. **Malicious Domain** - Simulated attacker-controlled domain
+6. **Malicious Domain** - Simulated attacker-controlled domain (not really a scenario, but supports the others)
 
 ## Quick Start
 
@@ -44,7 +48,14 @@ The backend will start on **http://localhost:3001**
 
 #### 4. Configure and Start NGINX
 
-**Option 4a: Using Docker (Easiest)**
+**Option 4a: Using Pre-built Docker Image (Easiest)**
+
+```bash
+# Pull and run the latest pre-built image
+docker run -p 80:80 ghcr.io/professionallyevil/csp-slap:latest
+```
+
+**Option 4b: Build Your Own Docker Image**
 
 ```bash
 # Build and run the complete demo with NGINX
@@ -54,7 +65,7 @@ docker run -p 80:80 csp-demo
 
 Access the demo at **http://localhost/** or **http://demo.example.com/** (after adding to hosts file)
 
-**Option 4b: Using Your Existing NGINX**
+**Option 4c: Using Your Existing NGINX**
 
 **For Windows NGINX Integration:**
 
@@ -272,8 +283,14 @@ sudo nginx -t && sudo systemctl reload nginx
 
 #### Option 4: Docker Deployment
 
+**Using Pre-built Image (Recommended):**
 ```bash
 # Complete self-contained deployment
+docker run -p 80:80 ghcr.io/professionallyevil/csp-slap:latest
+```
+
+**Building from Source:**
+```bash
 docker build -t csp-demo .
 docker run -p 80:80 csp-demo
 ```
