@@ -40,16 +40,14 @@ RUN npm ci --only=production
 COPY nginx-container.conf /etc/nginx/nginx.conf
 
 # Create a startup script to run both NGINX and Node.js
-RUN cat > /start.sh << 'EOF'
-#!/bin/sh
-
-# Start Node.js backend in background
-cd /app
-node dist/index.js &
-
-# Start NGINX in foreground
-nginx -g "daemon off;"
-EOF
+RUN echo '#!/bin/sh' > /start.sh && \
+    echo '' >> /start.sh && \
+    echo '# Start Node.js backend in background' >> /start.sh && \
+    echo 'cd /app' >> /start.sh && \
+    echo 'node dist/index.js &' >> /start.sh && \
+    echo '' >> /start.sh && \
+    echo '# Start NGINX in foreground' >> /start.sh && \
+    echo 'nginx -g "daemon off;"' >> /start.sh
 
 RUN chmod +x /start.sh
 
