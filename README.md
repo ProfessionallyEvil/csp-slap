@@ -334,3 +334,14 @@ csp-demos/
 ## Contributing
 
 This project is designed for CSP education and demonstration. Feel free to extend with additional CSP scenarios or improve existing demonstrations.
+
+## License
+
+This project is licensed under the **Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License**.
+
+- ✅ **Free to use** for educational and non-commercial purposes
+- ✅ **Free to modify** and extend with your own CSP scenarios  
+- ✅ **Free to share** with attribution
+- ❌ **No commercial use** without permission
+
+See the [LICENSE](LICENSE) file for full details.
