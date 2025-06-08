@@ -35,6 +35,3 @@ malicious.example.com      - Simulated attacker domain
 - Both legacy-friendly (NGINX sub_filter) and modern (Helmet middleware) CSP approaches
 - Server-side nonce generation and injection into EJS templates
 - SHA-256 hash calculation for inline scripts
-
-### Current State
-The project is in early setup phase with basic TypeScript configuration. Development should follow the detailed requirements in `docs/csp_demo_requirements.md` which outlines 5 demonstration scenarios and specific implementation approaches for each virtual domain.
